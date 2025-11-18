@@ -1,6 +1,6 @@
 # "Impariamo il C" - Learning Repository
 
-This repository contains my code and notes while following the **Impariamo il C** course by **Antirez** on YouTube.
+This repository contains my code and notes while following the **Impariamo il C** an advanced low-level programming course course by **Antirez** on YouTube.
 
 **YouTube Channel:** https://www.youtube.com/@antirez
 
