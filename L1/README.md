@@ -6,7 +6,7 @@
 
 ### 1. Course and C Language Presentation
    - General introduction to the course
-   - C language characteristics
+   - C language brief historical notions
    - Course objectives
 
 ### 2. The Compiler and Hello World
@@ -21,8 +21,7 @@
 
 ### 4. `man` Command and Documentation
    - `man fn_name` - display function manual
-   - `man` - manual for shell commands
-   - `man 3` - manual for C functions
+   - `man 3 fn_name` - display c function manual
 
 ### 5. Preprocessor Directives
    - What preprocessor directives are
@@ -44,7 +43,7 @@
 
 ## Code Files
 
-- `hello.c` - First Hello World program
+- `hello_world.c` - First Hello World program
 
 ## Notes
 
@@ -53,18 +52,13 @@ This lesson introduces fundamental concepts of C and the compilation process. It
 ## Useful Commands
 ```bash
 # Basic compilation
-cc hello.c
+cc hello_world.c
 
 # Execution
 ./a.out
 
 # View assembly
-cc -S hello.c
-cat hello.s
+cc -S hello_world.c
 
 # Optimized compilation
 cc -O2 hello.c
-
-# Consult manual
-man 3 printf
-```
