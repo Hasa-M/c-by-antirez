@@ -14,7 +14,7 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 
 ## Course Structure
 
-- Lesson 01 - Lezione 1
+- Lesson 01 - Introduction to C and the Compiler
 - ...
 
 ## Setup Instructions
