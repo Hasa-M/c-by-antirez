@@ -2,7 +2,8 @@
 
 This repository contains my code and notes while following the **Impariamo il C** course by **Antirez** on YouTube.
 
-**YouTube Channel:** https://www.youtube.com/@antirez 
+**YouTube Channel:** https://www.youtube.com/@antirez
+
 **Course Playlist:** https://youtube.com/playlist?list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&si=H4t_LxJxxE43zLBG
 
 ## About This Repository
