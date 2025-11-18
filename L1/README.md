@@ -1,25 +1,70 @@
-link al video: ...
+# Lesson 01 - Introduction to C and the Compiler
 
+**Video:** https://www.youtube.com/watch?v=HjXBXBgfKyk&list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&index=1
 
-Breve presentazione del corso e del C
+## Lesson Contents
 
-Compilatore:
-Hello world 
-cc filename.c per compilare
-./.a.out per eseguire
-a.out binary file, explaination
--S per visualizzare il codice assembly
--O2 Ottimizzazione del compilatore livello 2 per la traduzione del programma in assembly
-man fn_name per visualizzae manuale relativo ad una funziona - man for shell, man 3 for c
+### 1. Course and C Language Presentation
+   - General introduction to the course
+   - C language characteristics
+   - Course objectives
 
+### 2. The Compiler and Hello World
+   - `cc filename.c` - code compilation
+   - `./a.out` - binary file execution
+   - `a.out` - output binary file
 
-Spiegazione delle direttive del preprocessore.
+### 3. Compiler Options
+   - `-S` - display generated assembly code
+   - `-O2` - compiler optimization level 2
+   - Translation process from C to assembly
 
-Differenza tra linguaggio e libreria con keyword del C.
+### 4. `man` Command and Documentation
+   - `man fn_name` - display function manual
+   - `man` - manual for shell commands
+   - `man 3` - manual for C functions
 
-.c -> c code with logic for execution
-.h -> stand for header, usually general code to include in different .c languages.
-But all .c and .h could be included with #include
+### 5. Preprocessor Directives
+   - What preprocessor directives are
+   - `#include` - file inclusion
+   - Role of the preprocessor in compilation
 
-definizione del prototipo di una funzione e come questo basti al compilatore per capire cosa fare con la dichiarazione di tale funzione.
+### 6. Language vs Library
+   - Quick explanation between language and library
+   - Some C language keywords
 
+### 7. `.c` and `.h` Files
+   - `.c` - files containing logic and execution code
+   - `.h` - header files, general code to include
+   - Both `.c` and `.h` can be included with `#include`
+
+### 8. Function Prototypes
+   - Function prototype definition
+   - How the compiler uses prototypes
+
+## Code Files
+
+- `hello.c` - First Hello World program
+
+## Notes
+
+This lesson introduces fundamental concepts of C and the compilation process. It's important to understand the difference between compilation and execution, and how the compiler translates C code into machine language through assembly.
+
+## Useful Commands
+```bash
+# Basic compilation
+cc hello.c
+
+# Execution
+./a.out
+
+# View assembly
+cc -S hello.c
+cat hello.s
+
+# Optimized compilation
+cc -O2 hello.c
+
+# Consult manual
+man 3 printf
+```
