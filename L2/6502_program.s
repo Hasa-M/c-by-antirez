@@ -1,4 +1,4 @@
-## stampa 50 pixel di colore verde in sequenza a video
+## print video 50 green pixels in sequence
 
 START:
     LDA #50         ## load the value 50 into register A
