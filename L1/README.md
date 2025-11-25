@@ -68,3 +68,6 @@ cc -O2 hello.c
 # Consult manual
 man 3 printf
 ```
+
+## Reference
+AI generated with human review. Model: Sonnet 4.5
