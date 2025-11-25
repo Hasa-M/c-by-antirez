@@ -588,4 +588,4 @@ To enhance this lesson, consider adding:
 
 
 ## Reference
-AI generated with human review. Model: Opus 4.5
+Notes refined through AI with human review. Model: Opus 4.5
