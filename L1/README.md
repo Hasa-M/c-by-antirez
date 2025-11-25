@@ -70,4 +70,4 @@ man 3 printf
 ```
 
 ## Reference
-AI generated with human review. Model: Sonnet 4.5
+Notes refined through AI with human review. Model: Sonnet 4.5
