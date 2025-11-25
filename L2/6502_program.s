@@ -1,19 +1,19 @@
 ## stampa 50 pixel di colore verde in sequenza a video
 
 START:
-    LDA #50         ## carica il valore 50 dentro il registro A
-    JSR FILL_FIVE   ## dopo aver caricato il valore salta alla funzione FILL_FIVE
+    LDA #50         ## load the value 50 into register A
+    JSR FILL_FIVE   ## after loading the value jump to the FILL_FIVE function
     BRK
 
-FILL_FIVE:          ## parte da 200 ($0200) e scrive nella memoria per 50 volte 5 spostandosi sequenzialmente
-    TAX             ## trasferisci A in X
-    BEQ DONE        ## se vale 0, l'istruzione è conclusa, va in riga 18. Casistica in cui LDA #N abbia N = 0.
-    LDY #$00        ## carica nel registo Y il valore 0
-    LDA #$05        ## carica nel registro X il valore 5
+FILL_FIVE:          ## it starts at 200 ($0200) and writes to memory 50 times 5 moving sequentially
+    TAX             ## transfer A to X
+    BEQ DONE        ## if it is 0, the instruction is completed, it goes to line 18. Case in which LDA #N has N = 0
+    LDY #$00        ## load the value 0 into the Y register
+    LDA #$05        ## load the value 5 into the X register
 LOOP:
-    STA $0200, Y    ## Registra il valore di A alla locazione -> indirizzo di base + valore di Y, che quindi dichira l'offset.
-    INY             ## incrementa di un unità Y.
-    DEX             ## decremento X di un unità.
-    BNE LOOP        ## se X non è zero salta a LOOP.
+    STA $0200, Y    ## records the value of A at location -> base address + value of Y, which then declares the offset
+    INY             ## increment by one unit Y
+    DEX             ## decrease X by one unit
+    BNE LOOP        ## if X is not zero jump to LOOP
 DONE:
     RTS
