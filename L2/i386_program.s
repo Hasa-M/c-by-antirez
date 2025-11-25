@@ -15,7 +15,7 @@ _main   PROC
         mov     ebp, esp                        ## the mov copies the register on the right to the one on the left
         push    20                              ; 00000014H
         push    10                              ; 0000000aH
-        call    ebp                             # jump to line 4 and save your PC
+        call    ebp                             # jump to line 4 and push the PC register
         add     esp, 8
         pop     ebp
         ret     0
