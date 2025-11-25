@@ -1,5 +1,17 @@
 # Lesson 02 - 
 
+Parte 1 di 2: "video link"
+
+in stdio.h contiene le funzioni standard di c che contengono le funzioni di input e output.
+
+Prima del nome dalla funzione va inserito il suo valore di ritorno
+Tra le parentesi stanno gli argomenti, e questi indicano cosa la funzione accetta. In caso di nessun parametro, opzionalmente, inserire void per indicare questo fatto.
+
+Utilizzato sum function come esempio. E spiegazione di espressione nei linguaggi di programmazione (es: a>10)
+
+Per abilitare i warning utilizzare gcc -W -Wall file_name.c
+
+I warning ci danno degli avvertimenti anche se il programma risulta compilabile. Il compilatore comunque ci avvisa se ci sono problemi che possano causare errori di programmazione.
 stampa la somma nella funzione main.
 Spiga cosa vuol dire printf - print formatted - e cosa fa, spampa in maniera formattata.
 
@@ -20,7 +32,7 @@ Spiega a cosa serve il valore di ritorno del main, ovvero a segnalare all' OS se
 Spiega il concetto di short circuit per l'and logico nella programmazione. E di come se la prima fallisca le altre non vengano eseguite e come questo sia utilizzato insieme al fatto che il main ritorni qualcosa.
 
 
-Parte 2: "video link"
+Parte 2 di 2: "video link"
 
 Spiega come funziona il garbage collector nella heap memory di javascript. E come nel C questo non sia analogo.
 
