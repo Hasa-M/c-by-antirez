@@ -17,7 +17,7 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 ## Course Structure
 
 - Lesson 01 - Introduction to C and the Compiler
-- ...
+- Lesson 02 - Functions, Variables, and Memory Management in C
 
 ## Setup Instructions
 
