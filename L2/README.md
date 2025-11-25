@@ -54,7 +54,7 @@ Utilizza questo programma quindi per relazionarsi con le variabili locali dicend
 
 Il C, dato il prototipo di una funzione, sa come dorvà chiamare quella funziona, basta che ne conosca l'indirizzo.
 
-Spiega lo stack utilizzando un esempio del x86_msvc_v19.14 nel tool [Compiler Explorer](https://godbolt.org/). Vedere riferimento nel file x86_msvc_v19.14.s.
+Spiega lo stack utilizzando un esempio con l'assembly dell'intel 386 nel tool [Compiler Explorer](https://godbolt.org/). Vedere riferimento nel file i386_program.s.
 Viene utilizzato un registro speciale, chiamato SP (stack pointer), che punta in una data posizione dello stack, questo contiene un indirizzo di memoria al suo interno(definizione di reference).
 Ci sono istruzioni chiamate PUSH e POP che rispettivamente prendone un registro del microprocessore e lo salva direttamente nello stack in un unica istruzione molto veloce e l'opposto.
 Per fare queste due operazioni viene utilizzato l'SP. La push decrementa lo SP di una "cella" mentre la POP incremente l'SP. Spiega che il registro BP è il base pointer, variabile. Fa vedere come lo stack si riempie al procedere delle istruzioni.
