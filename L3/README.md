@@ -267,4 +267,6 @@ int main(void) {
 ---
 
 ## Resources
+
+- Notes refined through AI with human review. Model: Opus 4.5
 - Use an LLM as an "evolved Stack Overflow" for quick answers to C questions
