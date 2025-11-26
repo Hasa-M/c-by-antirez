@@ -260,5 +260,6 @@ Each stack slot is 4 bytes (32-bit architecture). From EBP:
 - `6502_program.s` — 6502 assembly pixel fill
 - `i386_program.s` — x86 assembly output from Compiler Explorer
 
-## Reference
-Notes refined through AI with human review. Model: Opus 4.5
+## Resources
+
+- Notes refined through AI with human review. Model: Opus 4.5
