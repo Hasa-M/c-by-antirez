@@ -41,13 +41,6 @@ Always compile with warnings enabled — they catch potential issues even in com
 printf("Sum: %d\n", result);
 ```
 
-| Specifier | Type      | Example              |
-|-----------|-----------|----------------------|
-| `%d`      | Integer   | `printf("%d", 42);`  |
-| `%f`      | Float     | `printf("%f", 3.14);`|
-| `%s`      | String    | `printf("%s", "Hi");`|
-| `%c`      | Character | `printf("%c", 'A');` |
-
 ### The `main` Function
 
 - Entry point of every C program
