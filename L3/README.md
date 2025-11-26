@@ -1,42 +1,270 @@
-# Lesson 3:
+# Lesson 3: Variable Scope, Pass by Value, and C Types
 
-Creazione di una funzione incr, che torna void e non ha argomenti. La quale incrementa una variabile locale di 1 e la stampa a video. Spiega che questa funzione viene definita come side effect, ovvero che non ha un valore funzionale, non modifica nulla, ma ha l'effetto collaterale in questo caso di far succedere qualcosa.
+**YT Link:** https://www.youtube.com/watch?v=YNsXyasn4R4&list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&index=4
 
-Breve spiegazione differenza tra = e == (assegnazione e comparazione)
-Spiega brevemente che C è un linguaggio imperativo.
+---
 
-Fa vedere che chiamando N volte incr dentro il main, comunque stampa sempre lo stesso risultato, perchè X è locale.
+## Side Effects
 
-Introduce a questo punto il concetto di variabile locale, e definisce X globalmente. E definisce come il compilatore ragiona, passando alla ricerca delle variabili tra i vari scope. Non trovando X dichirata dentro la funzione la cerca a livello globale (in questo caso).
+A **side effect** is when a function does something observable (like printing) without returning a functional value.
 
-Spiega come X globale non perda lo stato ma venga creata ad inizio programma ed esisterà per tutta la durata del programma stesso.
-A questo punto fa vedere che per ogni chiamata di incr nel main viene incrementata la variabile x.
+```c
+void incrVoid(void) {
+    int x = 0;
+    x = x + 1;
+    printf("X: %d\n", x);
+}
+```
 
-A questo punto definisce la variabile globale definita dentro una funzione, attraverso l'utilizzo della keyword static. E come in questo caso sia effettivamente globale, ma visualizzabile solo fa function incr. E fa vedere come il programma non compili se X viene acceduta da un altra funzione.
+This function returns `void` — it has no return value, but it *does something* (prints to screen).
 
-Fa vedere come passando una variabile ad una funzione come argomento, questa non venga modificata anche se dentro la funzione c'è una modifica. Fino a quando si tratta di variabili locali.
+### Quick Note: `=` vs `==`
 
-Successivamente fa l'assegnazione e fa vedere come la variabile locale della main sia effettivamente cambiata.
+- `=` → **Assignment** (sets a value)
+- `==` → **Comparison** (checks equality)
 
-Spiega spindi che in c per default gli argomenti vengono passati alle funzioni per valore e non per riferimento. Ovvero ricevono una copia del valore passato alla funzione. E spiega come tutto il C sia basato su questo concetto, anche per le strutture.
+C is an **imperative language** — you give the computer a sequence of commands to execute.
 
-Spiega quindi che l'unico modo per il C di passare dei riferimenti è attraverso i puntatori.
-Chiusa la questione passaggio variabili.
+---
+
+## Variable Scope
+
+### Local Variables: The Problem
+
+```c
+void incrVoid(void) {
+    int x = 0;
+    x = x + 1;
+    printf("X: %d\n", x);
+}
+
+int main(void) {
+    incrVoid();  // prints 1
+    incrVoid();  // prints 1
+    incrVoid();  // prints 1
+}
+```
+
+**Always prints 1.** Why? `x` is **local** — created fresh each time the function is called, destroyed when it returns.
+
+### Global Variables: Persistent State
+
+```c
+int x = 0;  // Global
+
+void incrVoid(void) {
+    x = x + 1;
+    printf("X: %d\n", x);
+}
+
+int main(void) {
+    incrVoid();  // prints 1
+    incrVoid();  // prints 2
+    incrVoid();  // prints 3
+}
+```
+
+**Now it increments.** Global variables:
+
+- Created at program start
+- Exist for the entire program duration
+- Accessible from any function
+
+**Scope resolution:** The compiler first looks for `x` locally. If not found, it searches the global scope.
+
+### Static Variables: Best of Both Worlds
+
+```c
+void incrVoid(void) {
+    static int x = 0;  // Initialized once, persists between calls
+    x = x + 1;
+    printf("X: %d\n", x);
+}
+```
+
+`static` inside a function means:
+
+- **Global lifetime** (persists between calls)
+- **Local visibility** (only accessible within the function)
+
+If another function tries to access `x`, the program **won't compile**.
+
+---
+
+## Pass by Value
+
+### The Default Behavior
+
+```c
+int incrInt(int x) {
+    x = x + 1;
+    return x;
+}
+
+int main(void) {
+    int a = 10;
+    incrInt(a);
+    printf("A: %d\n", a);  // prints 10 — unchanged!
+}
+```
+
+`a` is still 10 because C passes arguments **by value** — the function receives a *copy*, not the original.
+
+### To Modify the Original: Reassign
+
+```c
+int main(void) {
+    int a = 10;
+    a = incrInt(a);  // a = 11
+    a = incrInt(a);  // a = 12
+    printf("A: %d\n", a);  // prints 12
+}
+```
+
+### Pass by Reference: Only with Pointers
+
+C is entirely pass-by-value. The **only way** to pass by reference is through **pointers** (covered in later lessons).
+
+This applies to everything in C, including structs.
+
+---
+
+## C Data Types
+
+### Basic Types
+
+| Type | Size (typical) | Range | Notes |
+|------|----------------|-------|-------|
+| `char` | 1 byte | -128 to 127 | Often used for characters |
+| `unsigned char` | 1 byte | 0 to 255 | |
+| `short` | 2 bytes | -32,768 to 32,767 | Size not guaranteed by spec |
+| `int` | 4 bytes | ≈ ±2 billion | |
+| `float` | 4 bytes | ≈ ±3.4 × 10³⁸ | ~7 decimal digits precision |
+| `double` | 8 bytes | ≈ ±1.7 × 10³⁰⁸ | ~15 decimal digits precision |
 
 
-Passa adesso all'argomento dei tipi.
+### Floating Point Representation
 
-Parla di float. Stampoa il float utilizzando %.3f. 
-Spiega che anche che se si utilizza lo specificatore sbagliato per stampare un determinato elemento, C comunque compila ma in questo caso la printf stampa cose impreviste.
+`float` (fp32) uses **mantissa + exponent** representation:
 
-Spiega la differenza tra fload e double e inizia a parlare dei tipi del c e definirli, int, double, float, chart, short(non garantito da specifica) etc. (inserire piccola tabella riassuntiva dei tipi e della memoria che utilizzano).
-Spiega la fp32 che la rappresentazione è a mantissa ed esponente.
+```
+[sign: 1 bit][exponent: 8 bits][mantissa: 23 bits]
+```
 
-Spiega che il C ha delle regole di promozione delle variabili automatico, e fa l'esempio negli argomenti delle funzioni variatiche short to int, float to double.
-Spiega che in C le regole di conversione automatica si applicano pure alle espressioni. Ma che sugli interi con segno non definisce un comportamento standard. Quindi bisogna stare attenti a non andare in overflow con gli interi con segno. Spiega cosa fa la keyword unsigned su un intero e che in questo caso un unsigned char = 255 va in overflow e diventa 0 e non -N come nel caso di quello con il segno.
-(piccola lista delle regole di conversione)
+### Format Specifiers Matter
 
-Spiega a cosa serve il ++ in c per fare l'incremento.
+```c
+float y = 1.234;
+printf("Y: %.3f\n", y);  // Correct: prints "1.234"
+```
 
-nota: Consiglia di utilizzare un LLM come uno stack overflow evoluto in caso di dubbi.
+Using the **wrong specifier** compiles but prints garbage. The compiler doesn't check format string correctness at runtime.
 
+| Type | Specifier |
+|------|-----------|
+| `int` | `%d` |
+| `float` / `double` | `%f` |
+| `char` | `%c` |
+| `char` as number | `%d` |
+
+---
+
+## Type Promotion and Overflow
+
+### Automatic Type Promotion
+
+C automatically promotes types in certain contexts:
+
+**In variadic functions (like `printf`):**
+- `short` → `int`
+- `float` → `double`
+
+**In expressions:**
+- Smaller types are promoted to larger types when mixed
+
+### Signed Overflow: Undefined Behavior
+
+```c
+char c = 127;
+c++;  // UNDEFINED — could be -128, could be anything
+```
+
+Signed integer overflow is **not defined** by the C standard. Don't rely on any specific behavior.
+
+### Unsigned Overflow: Defined Wraparound
+
+```c
+unsigned char c = 255;
+c++;  // c = 0 (wraps around)
+```
+
+Unsigned integers **wrap around** predictably: 255 + 1 = 0.
+
+### The `++` Operator
+
+```c
+x++;      // Increment x by 1 (same as x = x + 1)
+++x;      // Also increments, but returns the new value
+```
+
+---
+
+## Code Example
+
+```c
+#include 
+
+void incrVoid(void) {
+    static int x = 0;
+    x = x + 1;
+    printf("X: %d\n", x);
+}
+
+int incrInt(int x) {
+    x = x + 1;
+    return x;
+}
+
+int main(void) {
+    // Static variable demonstration
+    incrVoid();  // X: 1
+    incrVoid();  // X: 2
+    incrVoid();  // X: 3
+
+    // Pass by value demonstration
+    int a = 10;
+    incrInt(a);
+    printf("A: %d\n", a);  // A: 10 (unchanged)
+
+    a = incrInt(a);  // a = 11
+    a = incrInt(a);  // a = 12
+    printf("A: %d\n", a);  // A: 12
+
+    // Types demonstration
+    float y = 1.234;
+    char c = 128;  // Overflow! 128 > 127 (max signed char)
+    printf("Y: %.3f - C: %c\n", y, c);
+
+    return 0;
+}
+```
+
+---
+
+## Summary
+
+| Concept | Key Point |
+|---------|-----------|
+| Side effect | Function does something without returning a value |
+| Local variable | Created on call, destroyed on return |
+| Global variable | Exists for entire program, accessible everywhere |
+| `static` in function | Persistent like global, visible only locally |
+| Pass by value | Functions receive copies, not originals |
+| Pass by reference | Only possible with pointers |
+| Signed overflow | Undefined behavior — avoid it |
+| Unsigned overflow | Wraps around (255 + 1 = 0) |
+
+---
+
+## Resources
+- Use an LLM as an "evolved Stack Overflow" for quick answers to C questions
