@@ -69,5 +69,6 @@ cc -O2 hello.c
 man 3 printf
 ```
 
-## Reference
-Notes refined through AI with human review. Model: Sonnet 4.5
+## Resources
+
+- Notes refined through AI with human review. Model: Opus 4.5
