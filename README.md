@@ -17,8 +17,10 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 ## Course Structure
 
 - Lesson 01 - Introduction to C and the Compiler
-- Lesson 02 - Functions, Variables, and Memory Management in C
+- Lesson 02 - Functions, Variables, and Memory Management
 - Lesson 03 - Variable Scope, Pass by Value, and C Types
+- Lesson 04 - C Types Deep Dive and Fixed-Width Integers
+- Lesson 05 - Strings and Arrays
 
 ## Setup Instructions
 
