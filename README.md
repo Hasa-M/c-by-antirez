@@ -21,7 +21,8 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 - Lesson 03 - Variable Scope, Pass by Value, and C Types
 - Lesson 04 - C Types Deep Dive and Fixed-Width Integers
 - Lesson 05 - Strings and Arrays
-
+- Lessons 06-07 - Control Flow: Conditionals, Loops, and Recursion
+- Lesson 08 - Conway's Game of Life
 ## Setup Instructions
 
 ### Ubuntu
