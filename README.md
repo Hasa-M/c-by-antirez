@@ -23,6 +23,8 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 - Lesson 05 - Strings and Arrays
 - Lessons 06-07 - Control Flow: Conditionals, Loops, and Recursion
 - Lesson 08 - Conway's Game of Life
+- Lessons 09-10-11 - Pointers
+
 ## Setup Instructions
 
 ### Ubuntu
