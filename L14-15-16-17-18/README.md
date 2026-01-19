@@ -744,3 +744,1260 @@ era tardi, ma ci tenevo a farlo. Un saluto.
 
 Lesson 15 - My Notes
 tac.c:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// inversion of the file rows
+
+// linked list
+struct line {
+    char *s;
+    struct line *next;
+};
+
+
+// ./.a.out [filename]
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        printf("Missing file name\n");
+        return 1;
+    }
+
+    FILE *fp = fopen(argv[1], "r");
+    if (fp == NULL) {
+        printf("File does not exist\n");
+        return 1;
+    }
+
+    char buf[1024];
+    struct line *head =NULL;
+    while (fgets(buf,sizeof(buf),fp) != NULL) {
+        struct line *l = malloc(sizeof(*l));
+        size_t linelen = strlen(buf);
+        l->s = malloc(linelen+1);
+        for (int j = 0; j <= (int)linelen; j++) {
+            l->s[j] = buf[j];
+        }
+        l->next = head;
+        head = l;
+    }
+
+    fclose(fp);
+
+    while (head != NULL)
+    {
+        printf("%s", head->s);
+        head = head->next;
+    }
+    
+
+    return 0;
+}
+
+
+Lesson 16 - Lesson Link: https://www.youtube.com/watch?v=VPs_QtlLNcs&list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&index=17
+
+Lesson 16 - Transcript
+0:40
+Quando ci siamo bloccati per approfondire  le strutture, eravamo arrivati qui. Allora,  
+0:47
+avevamo detto: ci potremmo mettere qua una  lunghezza delle nostre stringhe prefisse,  
+0:54
+un contatore delle nostre stringhe prefisse.  Io qua avevo iniziato a dire, allora, dovremmo  
+0:58
+fare `uint32_t len`, pointer, poi ci metto il  count. Il count lo faccio andare ad essere +4,  
+1:07
+perché guardate qui il layout. Quindi questo  è l'offset 0, questo è l'offset 4 dentro la  
+1:13
+mia allocazione e all'offset 8 inizia la  stringa. Infatti, qua facciamo s += 8,  
+1:19
+e allora poi ci siamo fermati per trattare,  diciamo, le strutture, ma finalmente abbiamo  
+1:25
+la possibilità di utilizzare le strutture  per implementare questa libreria di stringhe.
+1:31
+Quindi, io scriverò `struct`. Questo si chiama  `pls` e scrivo `uint32_t len; uint32_t refcount;`.  
+1:47
+Siccome la struttura ha i campi che sono  correttamente allineati, allineati in maniera  
+1:57
+naturale, si dice, quindi questo è un campo  di 4 byte allineato all'offset 0, questo è  
+2:04
+di 4 byte allineato all'offset 4. L'offset 4 è  multiplo della dimensione del campo di 4 byte,  
+2:11
+quindi non ci saranno spazi, non ci sarà niente  di strano. E qua, invece, facciamo `char str[]`.  
+2:17
+Qui usiamo la dichiarazione in stile C99. Se  non mi sbaglio, è stato introdotto in C99. Tu  
+2:25
+metti le parentesi quadre aperte. Significa che  questo in realtà sarà un puntatore all'offset 8  
+2:32
+di tipo char, ma non si sa quanti byte verranno.  Quindi la grandezza effettiva della stringa è  
+2:39
+controllata dalla grandezza dell'allocazione  che poi noi eseguiamo con `malloc`.
+2:44
+A questo punto, guardate qui che cos'è  che succede. Allora, tanto per iniziare,  
+2:51
+la dimensione dell'allocazione con `malloc` la  riscrivo e scrivo `sizeof(struct pls) + len + 1`.  
+3:12
+Allora, qua facciamo una cosa: l'allocazione io la  scrivo in `struct pls *p`, chiamiamolo puntatore,  
+3:26
+la chiamo p, che è, diciamo, l'abbreviazione di  'prefixed', è uguale a `malloc(sizeof(struct pls)  
+3:34
++ len + 1)`, che è il mio header più la lunghezza  della stringa più un byte per il null terminator.
+3:40
+A questo punto, questi due non mi servono più  ovviamente, e poi mi tengo pure un puntatore.  
+3:52
+Allora, qua guardate, c'era `len_pointer = &len`.  Qua, in realtà, ora dobbiamo fare `p->len = len;`  
+4:00
+`p->refcount = 1;`. Nelle interfacce di  programmazione in cui si usa il reference  
+4:07
+counting, di solito è buona norma che la funzione  che crea l'oggetto restituisca l'oggetto con il  
+4:14
+conto di referenze a uno, perché comunque chi  l'ha chiamata questa funzione la memorizzerà da  
+4:20
+qualche parte questa referenza, e quindi è giusto  inizializzarla a uno e non a zero, anche perché  
+4:25
+altrimenti non si potrebbe più liberare perché  non potrei chiamare `ps_free` o `ps_release`,  
+4:34
+`ps_retain`. Di solito si usa una funzione  `retain` che aumenta il conto delle referenze,  
+4:39
+e una funzione `release` che decrementa il conto  
+4:41
+delle referenze. Io così posso fare con  `ps_create` la creazione della stringa,  
+4:46
+poi con `ps_release` decremento di uno il  reference counting, va a zero e lo libero.  
+4:52
+Quindi il conto della referenza iniziale  deve essere uno, ha senso che sia così.
+5:00
+Dopodiché, a me serve... ah no, in realtà non mi  serve più il puntatore `s` perché io utilizzerò  
+5:08
+`p->str`, perché vi ricordate che qui c'ho il  mio `str` interessante. Quindi `for (int j = 0;  
+5:17
+j < len; j++)` e poi qui scriverò  `p->str[j] = init[j];` e `p->str[len] = 0;`.  
+5:32
+A questo punto, voglio ritornare `p->str`,  quindi il puntatore all'inizio della mia stringa.
+5:41
+Vediamo le altre funzioni com'è che variano.  Quindi, io qua sempre mi becco nella mia  
+5:47
+`ps_print` il puntatore a `p->str`. Qui in realtà  quello che devo fare è `struct pls *p = (struct  
+6:00
+pls *)(s - sizeof(*p));`. Ma invece di scrivere  `sizeof(struct pls)`, posso scrivere, come vi  
+6:10
+avevo spiegato in una lezione precedente,  `sizeof(*p)`, che è la dimensione dell'oggetto  
+6:22
+che prenderei da questo puntatore se utilizzassi  l'operatore di dereferenziazione. Quindi,  
+6:31
+praticamente questa è una forma, io tendo a  scriverla così per una questione di brevità.  
+6:38
+Dopodiché, qui il `len_pointer` non mi serve  più, ma io scrivo qua `p->len`. Come vedete,  
+6:47
+così il codice è meglio documentato. Qui a questo  punto potrei usare `p->str[j]` per essere più  
+6:59
+esplicito in quello che succede. Probabilmente  è una buona idea. Non cambia una mazza.
+7:07
+`ps_free`... io voglio che non esista più;  la chiamo `ps_release`. A questo punto non  
+7:13
+esiste più il concetto di creare l'oggetto —  ancora c'è — ma di liberare l'oggetto. Io creo  
+7:20
+l'oggetto col conto delle referenze a uno,  posso aumentare questo conto delle referenze  
+7:25
+o decrementarlo. Se arriva a zero ci sarà la  `free`. O meglio, la `ps_free` io me la tengo,  
+7:32
+ma è una funzione che più o meno non chiamerà  più nessuno. Questa funzione non fa altro che  
+7:38
+fare `free(s - sizeof(struct pls));`. Chiudiamo  le notifiche dal cellulare. Don't allow. Quindi  
+7:53
+vado a liberare l'allocazione. Io vi ricordo che  per liberare un'allocazione che ho eseguito con  
+7:58
+`malloc`, poi la `free` deve essere chiamata  nel puntatore che mi ha restituito `malloc`,  
+8:02
+non da qualche parte dentro l'allocazione, deve  essere l'inizio. Quindi, io vado a fare questa  
+8:08
+sottrazione del puntatore `s` per arrivare di  nuovo al puntatore che mi ha restituito `malloc`.
+8:18
+A questo punto, però, dobbiamo aggiungere  `ps_release(char *s)`. Questo lo copiamo,  
+8:31
+mi becco il puntatore alla struttura  e poi scrivo `if (p->refcount == 0)`.  
+8:44
+Qui, vabbè, guardate, per ora scrivo con la  `printf`, poi queste cose si gestiscono in  
+8:50
+maniera un po' diversa, ma capiamoci: `Aborted  on free error`. Perché se già il conto delle  
+8:58
+referenze è a zero, ok, c'è qualcosa che non  va, perché quando è zero già l'oggetto è stato  
+9:05
+liberato. Quindi o è stato liberato un oggetto  che è stato già liberato o addirittura è stata  
+9:11
+liberata un'allocazione che non è neanche  una stringa `pls` perché il programmatore  
+9:15
+ha sbagliato. Quindi se il `refcount` è a  zero, io stampo questo messaggio e `exit(1)`.  
+9:21
+Per `exit(1)` ho bisogno di `unistd.h`.  Questa è una chiamata di sistema, `exit`,  
+9:28
+che hanno molti sistemi operativi, ma noi parliamo  di Unix `man 2 exit`. No, in realtà la `exit`,  
+9:41
+scusatemi... anche se in realtà chiama, credo, la  `_exit` syscall vera e propria. Siccome il nome è  
+9:50
+uguale, in realtà noi di solito chiamiamo  la funzione di libreria che è in `stdlib.h`,  
+9:56
+e quindi noi, nel caso dell'exit, non  abbiamo bisogno di includere `unistd.h`.
+10:02
+Benissimo. Ora che cos'è che facciamo?  
+10:06
+`p->refcount--;`. Decrementiamo il conto delle  referenze. Se `p->refcount` è arrivato a zero,  
+10:17
+non ci sono più possessori di referenze a  questo oggetto. A questo punto, io chiamo  
+10:22
+la `ps_free` al mio puntatore e lo libero,  altrimenti non faccio niente, niente di niente.
+10:33
+Questo ritorna la lunghezza. Questo  cancelliamolo. Qua, guardate, diventa  
+10:38
+tutto abbastanza immediato. `return p->len`,  che io prendo il mio puntatore all'header.  
+10:45
+Una volta che c'ho la struttura come header,  diventa tutto più facile e ritorno `p->len`.
+10:51
+Ah, qua facevo questo esempio con la mia  `global_string`. Allora, qua vediamo. Qua faccio  
+10:56
+`ps_create`, poi facevo `ps_print` che ancora  funziona. Qua, invece, uso `ps_release`. Qua,  
+11:05
+guardate, c'è ancora il problema perché io,  vi ricordate, qua il codice ancora simulava  
+11:10
+un bug. Allora, tanto per iniziare, andiamo a  `ps_release` e implementiamo pure la funzione  
+11:17
+gemella `ps_retain`, che serve per incrementare  il conto delle referenze della mia stringa. Così  
+11:24
+possiamo fare ora anche la versione corretta  di questo programma. Mi prendo l'header e  
+11:29
+faccio `p->refcount++;`. Questo non fa altro che  incrementare il conto delle referenze. In realtà,  
+11:36
+sarebbe interessante anche qui mettere questo  controllo: `Aborted on retain of illegal string`.  
+11:58
+Scriviamo così, perché il conto delle  referenze non può essere zero e poi io  
+12:04
+vado ad aumentare il conto di queste  referenze. C'è qualcosa che non va,  
+12:09
+non dovrebbe essere mai zero. Quando  si arriva a zero è solo in questo caso,  
+12:14
+ma in questo caso poi l'allocazione viene liberata  e non si dovrebbe utilizzare di nuovo `ps_retain`.
+12:20
+Allora, `release`: drop the reference  count of the string object by one and  
+12:31
+frees the object if the refcount reached  zero. `retain`: increase the reference  
+12:43
+count of the string object. Vabbè, commenti  minuscoli perché qua ci interessa fare altro.
+12:52
+Allora, guardate, a questo punto io  con `ps_create` creo la mia stringa,  
+12:57
+poi la assegno a un altro puntatore. Quindi, dopo  che io faccio questa operazione di assegnazione,  
+13:04
+io qua devo scrivere `ps_retain(mystr)`. Ora sì  che ci siamo. Io ora, siccome ho due referenze,  
+13:15
+ho creato la mia stringa con reference  counting 1 e, in effetti, ha un "owner",  
+13:21
+la mia variabile locale `mystr`. Quando poi gli  creo una nuova ownership, uso `retain`. A questo  
+13:30
+punto il programma è corretto. Poi la stampo due  volte, poi la stampo scrivendo la sua lunghezza,  
+13:36
+poi la rilascio la prima volta. Tra l'altro,  ho dimenticato la bottiglietta d'acqua,  
+13:43
+mannaggia a me. Ora la stampo ancora perché  ha un altro riferimento. Uso l'altra variabile  
+13:50
+che ancora dovrebbe avere un riferimento  lecito. A questo punto faccio anche qui  
+13:55
+`ps_release` e ora il programma dovrebbe essere  corretto. Proviamo. Non funziona una mazza.
+14:07
+Allora, andiamo al primo errore, alla linea 28.  Questo si chiama `refcount` e questo è facile. Poi  
+14:13
+qua c'è un problema di inizializzazione. Esatto,  perché questo oggetto qua è un puntatore di tipo  
+14:24
+`char`, quindi io qua devo scrivere `struct pls  *`, un puntatore di tipo `pls`. E guardate qui,  
+14:32
+io devo mettere ovviamente le parentesi perché non  voglio che il casting sia di `s`, perché poi la  
+14:39
+sottrazione avverrebbe in maniera errata. Quindi  io per chiarezza specifico proprio quali sono i  
+14:46
+passaggi. Io ti dico: prima prendi il puntatore di  tipo `char`, che con la matematica dei puntatori,  
+14:52
+siccome il `char` è un tipo di 1 byte, significa  che se io sottraggo la grandezza della struttura,  
+14:58
+tu mi sottrai davvero quei byte, non li  moltiplichi per qualche altra cosa, li moltiplichi  
+15:03
+per uno, quindi restano invariati. Una volta che  io c'ho il nuovo puntatore, a questo punto tu mi  
+15:08
+fai il casting. Ora questa riga così com'è,  noi l'andiamo a copiare in vari altri luoghi  
+15:17
+in cui avevo parimenti sbagliato. Forse basta.  Esatto. E ora infatti il programma funziona.
+15:28
+Ora vi faccio vedere una cosa. Se  io qua gli metto un altro `release`,  
+15:31
+che la stringa era già stata liberata  sufficientemente volte... c'è un problema,  
+15:40
+perché io qua non sto vedendo l'errore  che avrei dovuto vedere. Vediamo perché.  
+15:49
+`ps_release`. Io dovevo arrivare qui perché  il `refcount` doveva essere zero. Allora,  
+15:57
+per vedere il debugging di ciò che accade,  noi ora quante chiamate `release` abbiamo? 1,  
+16:02
+2 e 3. Ah, ok. Qua manca la newline, tanto  per iniziare, quindi comunque l'errore forse  
+16:10
+non l'avrei visto per tale motivo. Quello era un  problema, ma non era il problema che avevamo noi.
+16:18
+Qui ogni volta che chiamiamo `retain` scriviamo:  `current ref count is...` e ce lo facciamo  
+16:30
+scrivere. `ref count is one`. Ah no, scusate, non  mi interessa nella `retain`, mi interessa nella  
+16:44
+`release`. `current ref count is...` questo numero  qua. Allora, guardate che cos'è che è successo  
+17:00
+qui. Qui è successo che noi nella `release`...  ah ok, semplicemente si è corrotto l'header. Ok,  
+17:15
+questo check semplicemente non avevamo  nessuna garanzia che davvero funzionasse,  
+17:21
+perché una volta che io praticamente libero la  stringa, libero l'allocazione, quello che succede  
+17:29
+è che `malloc`, dove c'era la mia allocazione,  ci può scrivere quello che gli pare. Infatti,  
+17:34
+quello che è successo in questo specifico  caso, guardate che cos'è. Perché io, quando  
+17:39
+poi arrivo veramente qua, che davvero faccio  la `ps_free`... e ora scrivo qual è il valore  
+17:46
+del `refcount`. Quindi ora sto scrivendo il valore  del `refcount`... l'allocazione a cui fa capo `p`  
+17:53
+non è più valida. Io mi aspetterei di trovare  uno zero, invece trovo un valore a casaccio.
+18:00
+Allora, com'è che ci si può  difendere da questi errori qua?  
+18:06
+Il modo per difendersi da questi errori, almeno  in parte, ma col problema di dover utilizzare  
+18:14
+più memoria, è il seguente. Qua possiamo usare un  campo che noi chiamiamo `magic`. Questo `magic`,  
+18:28
+quando creiamo la nostra stringa, lo settiamo a un  valore particolare: `0xDEADBEEF`, che è un numero  
+18:44
+a 32 bit. Ok? Una volta che ho questo magic,  guardate che facciamo qui. Quando io praticamente  
+18:52
+faccio la `release`, guardate, prima di fare la  `ps_free` io faccio `p->magic = 0;`. Ok? Invalido  
+19:09
+questo magic. Ora questo numero magico che ho, lo  uso come validatore che la mia stringa sia valida.
+19:18
+Quindi, guardate qua, facciamo una funzione che  chiamo `ps_validate` e qua gli diamo direttamente  
+19:31
+la struttura. Vabbè, questa ora la uso solo qua  nella `release`, ma noi in realtà la dovremmo  
+19:38
+usare nella `retain`, la potremmo usare in tutte  le funzioni che manipolano queste stringhe. E  
+19:43
+guardate che ci facciamo con questa `ps_validate`.  Scriviamola. `ps_validate(struct pls *p)`. `if  
+20:00
+(p->magic != 0xDEADBEEF)`... `printf("INVALID  STRING: Aborting\n"); exit(1);`. `validate that  
+20:22
+a PS string looks valid`. Vediamo se ora  funziona questo programmino qua. Esatto.
+20:32
+Allora, guardate, il programma funziona.  Appena praticamente io vado ad accedere  
+20:36
+a una stringa che non è più valida perché  è stata liberata in questa chiamata qui,  
+20:43
+vedrò questo messaggio qua. Ora, se  io questa chiamata invece la tolgo e  
+20:51
+compilo il programma, il programma  andrà avanti in maniera corretta.
+20:55
+Quello che ci possiamo chiedere a questo  punto è: val la pena di usare 4 byte in più  
+21:03
+in queste stringhe per avere questa salvaguardia?  Dipende. Può valerne la pena, può non valerne la  
+21:08
+pena. Ci sono anche le possibilità di fare, per  esempio: `#ifdef PLS_DEBUG ... #endif`. Questa  
+21:18
+è una direttiva del compilatore che se io il  programma lo compilo definendo a uno questa macro  
+21:26
+`PLS_DEBUG`, allora il `magic` ci sarà veramente.  Ovviamente questa cosa qui poi la devo mettere  
+21:33
+anche qui. Quindi potrei avere delle build, mentre  io faccio lo sviluppo, che hanno questa importante  
+21:43
+protezione per beccare i bug. Quando poi faccio  la build, quella che effettivamente sarà eseguita  
+21:53
+in produzione nei sistemi, potrei definire  `PLS_DEBUG` a zero e salvare questi 4 byte per  
+22:02
+ogni stringa. Queste sono considerazioni  che lascio alla vostra cara saggezza.
+22:11
+Benissimo, io direi che con questa puntata  abbiamo messo abbastanza carne al fuoco.  
+22:16
+Vi vorrei dire solo una cosa: qua, in  questo caso, come riferimento ulteriore,  
+22:19
+abbiamo messo `global_string`, un riferimento  globale esterno, ma potete immaginare anche che  
+22:25
+ci siano degli array che contengono alcuni...  un array, per esempio, potrebbe contenere,  
+22:29
+o una lista linkata come abbiamo visto  l'ultima volta, tutte le sottostringhe.  
+22:34
+Altre liste linkate potrebbero contenere solo  alcune sottostringhe, un subset che ha una qualità  
+22:40
+particolare. Io manipolo queste due diverse liste  linkate, a volte rimuovo una sottostringa da un  
+22:45
+insieme e mi basterà chiamare `ps_release`. Poi,  se per caso la stessa stringa è referenziata anche  
+22:51
+dall'altra parte, avrà `refcount` 2 perché  quando io l'ho inserita anche dall'altra  
+22:55
+parte avrò chiamato `ps_retain`, e quindi sono  tranquillo, come ho fatto qui con `ps_retain`.
+23:01
+Vedete, questa è sempre una gestione manuale  della memoria, ma è molto meglio di andare  
+23:07
+di `malloc` e `free` nude e crude ogni singola  volta. È un modo per prevenire errori e, inoltre,  
+23:14
+a differenza della gestione completamente manuale  della memoria, ci consente con queste cose qui,  
+23:20
+con questo trucco per esempio del `magic`,  di inserire delle salvaguardie che rendono la  
+23:27
+programmazione in C un pelo più sicura di come lo  è altrimenti. Bene, allora alla prossima lezione.
+
+Lesson 16 - My Notes
+pls.c:
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#define PLS_DEBUG = 1;
+
+struct pls {
+    uint32_t len;
+    uint32_t refcount;
+#ifdef PLS_DEBUG
+    uint32_t magic; // se setto la macro PLS_DEBUG a 1 magic viene inserita nella pls
+#endif
+    char str[]; // C99 - puntatore ad offset 6 di tipo char con byte dinamici
+};
+
+char *ps_create(char *init, int len) {
+    struct pls *p = malloc(sizeof(struct pls)+len+1);
+    p->len = len;
+    p->refcount = 1;
+#ifdef PLS_DEBUG
+    p->magic = 0xDEADBEEF;
+#endif
+    for (int j = 0; j < len; j++) {
+        p->str[j] = init[j];
+    }
+    p->str[len] = 0;
+    return p->str;
+}
+
+/* Display the string "s" on the screen */
+void ps_print(char *s) {
+    struct pls *p = (struct pls*)(s - sizeof(*p));
+    for (int j = 0; j < (int)p->len; j++) {
+        putchar(p->str[j]);
+    }
+    printf("\n");
+}
+
+/* Free previously created PS string */
+void ps_free(char *s) {
+    free(s-sizeof(struct pls));
+}
+
+
+void ps_validate(struct pls *p) {
+#ifdef PLS_DEBUG
+    if(p->magic != 0xDEADBEEF) {
+        printf("INVALID STRING: Aborting\n");
+        exit(1);
+    }
+#endif
+}
+
+/* Drop the reference count of the string object by one
+ * and frees the object if the refcount reached 0 */
+void ps_release(char *s) {
+    struct pls *p = (struct pls*)(s - sizeof(*p));
+    ps_validate(p);
+    
+    p->refcount--;
+    if (p->refcount == 0) {
+#ifdef PLS_DEBUG
+        p->magic = 0;
+#endif
+        ps_free(s);
+    }
+}
+
+/* Increase the reference count of the string object */
+void ps_retain(char *s) {
+    struct pls *p = (struct pls*)(s - sizeof(*p));
+    if (p->refcount == 0) {
+        printf("ABORTED ON RETAIN OF ILLEGAL STRING\n");
+        exit(1);
+    }
+    p->refcount++;
+}
+
+/* Return the length of the string in 0(1) time */
+uint32_t ps_len(char *s) {
+    struct pls *p = (struct pls*)(s - sizeof(*p));
+    return p->len;
+}
+
+char *global_string;
+
+int main(void)
+{
+    char *mystr = ps_create("Hello World", 11);
+    global_string = mystr;
+    ps_retain(mystr);
+
+    ps_print(mystr);
+    printf("%s %d\n", mystr, (int)ps_len(mystr));
+
+    ps_release(mystr);
+    printf("%s\n", global_string);
+    ps_release(global_string);
+    ps_release(global_string);
+
+    return 0;
+}
+
+
+Lesson 17 - Link: https://www.youtube.com/watch?v=grkIJjw6o18&list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&index=18
+
+Lesson 17 - Transcript:
+0:40
+Cari amici, oggi per noi è necessario andare ad approfondire  alcuni argomenti che sono stati toccati nella  
+0:50
+scorsa puntata e in alcune di quelle precedenti:  prefixed-length strings, quando abbiamo  
+0:57
+implementato questo file qui. Infatti, ci sono  stati molti dubbi. Ci sono stati dei dubbi che  
+1:05
+noi dobbiamo necessariamente sciogliere prima di  continuare. Ma magari, visto che questa puntata  
+1:12
+non può essere solo uno scioglimento di dubbi  perché sennò si potrebbe tradurre anche in un  
+1:18
+rompimento di scatole, la utilizzeremo anche per  far capire, se questa dovesse essere una libreria  
+1:30
+per uso in codice in produzione, come si arriva da  qui a una serie. Quindi esploreremo queste diverse  
+1:39
+cose. Secondo me la prima e più importante  questione è il dubbio di questo puntatore.
+1:51
+Primo problema: struct { int len; char str[];  }. La gente mi diceva: "Ma perché c'è scritto  
+2:05
+str[] invece di char *str?". Bene, queste due  cose sono completamente diverse e lo vedremo  
+2:15
+iniziando da questa definizione, quella  che le persone si aspettavano di trovare.
+2:23
+Includiamo stdio.h... stdlib.h  pure, non lo so, ora vediamo.
+2:40
+E scriviamo la nostra main. Allora, per  dire, io posso scrivere struct pls S. Poi  
+2:56
+devo inizializzare i miei campi: s.len è uguale a  10; s.str. A questo punto questo è un puntatore,  
+3:06
+quindi è, ricordiamoci cos'è un puntatore:  un numero, quindi è un intero. Devo questo  
+3:14
+puntatore allocarlo, perché altrimenti la mia  stringa dov'è che la registro? La mia stringa  
+3:19
+di 10 caratteri più il terminatore nullo. Mi  tocca scrivere malloc(10 + 1), che sarebbe 11,  
+3:26
+ma lo scriviamo così per sottolineare come il +1  sia per il null terminator. E poi io posso... c'è  
+3:34
+la funzione memcpy, che forse non avevamo visto  mai, che è una funzione molto importante del C.  
+3:41
+Si dà un puntatore di destinazione, un puntatore  sorgente e un numero di byte, e memcpy effettua  
+3:48
+la copia. Noi dentro la libreria avevamo usato un  ciclo for per palesare quello che stava accadendo,  
+3:54
+ma in C è idiomatico, è normale usare memcpy.  `memcpy(s.str, ...)` qua è il mio puntatore di  
+4:02
+destinazione. Il mio puntatore sorgente invece  glielo do così, come una stringa literal in C,  
+4:10
+quindi scritta direttamente nel sorgente.  Ma il C, quando compila questo programma,  
+4:16
+dentro una parte particolare della memoria  del programma allocherà questa stringa qui,  
+4:24
+fissa nel programma, in delle pagine che  di solito non possono essere modificate,   altrimenti il programma viene interrotto con  una violazione della memoria. Però trasformerà  
+4:34
+questa stringa letterale che io do qui in un  puntatore, quindi memcpy vedrà un puntatore.  
+4:41
+`memcpy("1234567890", ...)` sono 10 byte, virgola  11, perché vi ricordo che anche se questi sono  
+4:50
+10 byte, il C metterà alla fine il terminatore  nullo, quindi un byte a zero. E ora io mi posso  
+4:57
+chiedere qual è il layout... return 0. Peraltro,  io prima di farvi vedere il layout, volevo farvi  
+5:05
+vedere qui con printf, che è la printf che può  stampare un puntatore, che questo è un puntatore.
+5:18
+È definito in string.h.
+5:26
+Vedete che è un puntatore, cioè, lo stampa come un  puntatore, né più e né meno. Qual è in memoria il  
+5:32
+layout di questa roba qui? Prima di farvelo  vedere nella maniera più visuale possibile,  
+5:39
+ragioniamoci assieme. Quindi questo è un intero.  Quindi qua ci sono 4 byte, in questa macchina  
+5:46
+l'intero è di 4 byte. Poi c'è un padding, perché  siccome il puntatore è di 8 byte, perché è una  
+5:56
+macchina a 64 bit, c'è un padding. Quindi no, per  non avere questo padding qua, scriviamogli `long`,  
+6:03
+così questo intero qui è di 8 byte pure. Quindi  abbiamo 8 byte un intero, 8 byte un altro intero  
+6:09
+che è il puntatore, e questo puntatore conterrà  l'indirizzo di memoria che gli abbiamo assegnato  
+6:15
+qui. Ma per vedere queste cose per bene, proviamo  a scrivere una funzione molto carina. Guardate:  
+6:22
+void hexdump(...). Avete presente hexdump?  `hexdump -C` che significa "canonical".  
+6:31
+Io posso stampare dei file con  hexdump guardando gli offset,  
+6:36
+i byte e quello che contengono all'interno.  È molto carina questa cosa. Proviamo a fare  
+6:43
+una funzione hexdump, quindi `unsigned  char *`, anzi `void *p, size_t len`.
+7:07
+Facciamo una cosa. Allora, la lunghezza io la  considero... for `int j = 0; j < len; j++`.  
+7:25
+Partiamo con una versione semplice. Allora, tanto  per iniziare, io faccio che `unsigned char *byte`  
+7:42
+e lo assegno a `p`. `p` è `void *`, quindi  non ha bisogno di casting, è semplicemente un   indirizzo di memoria. Questo è un altro indirizzo  di memoria, ma questo è tipizzato. Io posso fare,  
+7:51
+qui in questo ciclo for in cui j va da 0 fino a  quanti byte ho, `printf("%02X ", byte[j])`. Questo  
+8:01
+specificatore di tipo, `02X`, stampa un numero che  io passo come intero, lo stampa come esadecimale,  
+8:14
+e io stampo `byte[j]`, quindi il mio byte. Ok?  Poi alla fine qua scriviamo un new line. Allora,  
+8:24
+quindi abbiamo questa semplice versione della  hexdump. Proviamo a usarla qui: `hexdump(&s,  
+8:31
+sizeof(s))`. Devo usare la e commerciale per  ottenere da S, che è una struttura, il suo  
+8:41
+puntatore. Questo è di quanti byte è composta.  Proviamo. Compiliamo. Ed ecco, guardate questo  
+8:53
+qui. Questi primi 8 byte sono il mio intero.  Siccome io avevo assegnato 10 alla lunghezza,  
+9:01
+vedete, qua c'è scritto... c'è solo un... siccome  questa macchina è little-endian, i byte meno   significativi, quelli che valgono di meno nel  numero, sono i primi. Nelle macchine big-endian,  
+9:12
+che vi ripeto, non esistono praticamente più  nell'informatica di oggi da un po' di anni,  
+9:17
+e la tendenza sembra quella che  le vedrà del tutto scomparire,  
+9:23
+avrebbero avuto 0A qui e qua avrebbero avuto  tutti zero, perché i byte più significativi in  
+9:29
+big-endian sono i primi e quelli meno  significativi gli ultimi. Dopodiché,   qua c'è il nostro puntatore. Guardate,  questo è il puntatore a `...060...032`  
+9:41
+perché lo dovete leggere al contrario,  perché è little-endian. Infatti, guardate,   io qua mi faccio anche stampare prima di hexdump,  mi faccio stampare 'sto puntatore `s.str`.
+9:55
+Guardate, il puntatore è `...6010` e qui guardate  cosa abbiamo: `...60...10`. I due byte iniziali  
+10:04
+sono zero, ma fanno parte del puntatore. Però,  ovviamente, qua nella printf... perché non è che  
+10:09
+se devo scrivere 10, io scrivo 0010, perché  non hanno valore. Quindi in questa struttura  
+10:21
+io ho effettivamente un puntatore a stringa che  esiste dentro la struttura e che occupa 8 byte.
+10:32
+Ora invece cambiamo le carte in tavola. Io  questa `str` la definisco come un array di  
+10:46
+20 caratteri. Ora, se ci ragionate,  io c'ho prima qui la mia lunghezza,  
+10:54
+ok? Quindi sono sempre i miei 8 byte, dopodiché  c'ho 20 caratteri, uno appresso all'altro.  
+11:01
+Quindi vedete che non c'è più un  puntatore registrato qua dentro,   e ora ci arriviamo bene. Però già io so che  ho una lunghezza e 20 caratteri. Non c'è più  
+11:10
+quel puntatore che io avevo quando  le cose erano definite diversamente.
+11:17
+Dovrei, per far funzionare il programma, cambiare  questa cosa qui pure, perché `str` non è più un  
+11:22
+puntatore, non ci posso assegnare niente, è un  array fisso dentro la struttura. Ma `s.str` verrà  
+11:30
+convertito dal C in un puntatore: il puntatore al  quale inizia questo array di 20 caratteri. Quindi,  
+11:38
+che cos'è che fa il C? Prende l'inizio  di S, ovunque fosse registrata S.  
+11:47
+Qualsiasi fosse l'indirizzo di memoria,  ci aggiunge 8, perché è l'offset di `str`,  
+11:53
+perché prima ci sono 8 byte di `len`. E  questo è il modo in cui compila `s.str`.
+12:01
+Ora io ci scrivo 'sta roba qua, 11 byte, e  rieseguo il programma esattamente com'era prima.  
+12:10
+Allora, guardate qua: ci sono gli 8 byte  e qua iniziano i byte della stringa che  
+12:18
+ho... gli ASCII 31, 32, 33 sono 1, 2, 3...  Infatti, la mia hexdump non era tanto carina.  
+12:26
+Facciamo una cosa... `if ((j+1) % 8  == 0)`... stampiamo in gruppi di 8.
+13:00
+Guardate, qua gli dico, se `(j+1)` diviso 8 ha  resto 0, quindi significa se questa cosa accade  
+13:10
+a 8, 16, 24 e così via, ma siccome i miei indici  partono da zero, io in realtà lo voglio fare a 7,  
+13:21
+15... quindi ci aggiungo uno a j.  Però poi ho un new line in più...
+14:37
+Sarebbe carino avere anche i caratteri leggibili.  Allora, facciamo una cosa più interessante.  
+15:10
+Se è multiplo di 8 o se `j == len-1`, se comunque  sto uscendo dal ciclo e quindi non c'è nessuno  
+15:22
+che potrà stampare il new line, stampa il new  line se è l'ultima iterazione. Così funziona.
+15:35
+Ora vi faccio vedere perché è stato utile  ricondurre la logica solo qui: perché ora  
+15:44
+noi facciamo un altro ciclo for. Prima del new  line, noi stampiamo un tab che ci sposta a destra  
+15:53
+e facciamo un altro ciclo. `int i = ...` Io voglio  sapere quando ho iniziato a stampare i caratteri.  
+16:26
+Allora, facciamo una cosa: `size_t po =  0`. Perché voglio stampare, oltre agli  
+16:41
+esadecimali, anche quelli leggibili,  human-readable. Quando io arrivo qua,  
+16:51
+voglio stampare tutti quelli... `for (size_t i =  po; i <= j; i++)`. Stampiamo anche il carattere,  
+17:32
+ma ora questo carattere lo dobbiamo stampare  in un modo speciale. C'è questa funzione di  
+18:38
+libreria del C, bisogna includere ctype.h, che  si chiama `isprint`, che è l'abbreviazione di "is  
+18:46
+printable". Questo carattere è stampabile  a video? Quali sono i caratteri stampabili?  
+18:52
+Sono quelli che non mi creano casini quando li  stampo. Quindi io, guardate che cosa faccio qua.
+19:04
+Facciamo `int c = isprint(byte[i]) ? byte[i]  : '.'`. Questo è l'operatore ternario.  
+19:17
+È stampabile? Allora uso `byte[i]`, altrimenti  il mio carattere sarà il punto. Prima vi faccio  
+19:26
+vedere che questa roba qui funziona e  poi vi spiego come. Includo ctype.h.
+19:41
+Ecco, vedete ora che succede? Io vedo  praticamente i caratteri. Però... 0A lui  
+19:52
+lo considera stampabile... no, qui il problema  è diversissimo. È che qui manca un uguale,  
+20:14
+perché io devo stampare da `po` a `j`  incluso. E poi qui è sbagliato, perché il  
+20:43
+prossimo byte che non ho ancora stampato è `j+1`.  Esattamente. Ora funziona tutto come dovrebbe.
+21:11
+Allora, vi devo una spiegazione su questa  riga. Ho usato uno strano operatore. `int  
+21:21
+c = isprint(byte[i]) ? ...`. Se questa condizione  è vera, la mia espressione ritorna questo,  
+21:39
+altrimenti ritorna questo. In sostanza, è  come se fosse un if. Prima viene valutata  
+21:47
+questa condizione, dopodiché il valore  di ritorno dell'espressione è questo a  
+21:57
+sinistra se la condizione è vera, o questo se  è falsa. Altrimenti, avrei dovuto scrivere `if  
+22:08
+(isprint(byte[i])) c = byte[i]; else c =  '.';`. Il programma funziona allo stesso modo.
+22:48
+Vi sarete forse chiesti come mai questi  byte finali variano, ma è perché noi abbiamo   inizializzato la nostra struttura fino a qui, fino  al puntino dopo lo zero, che è il null terminator.  
+23:06
+Dopodiché, la struttura è parte del programma  non inizializzata. Se vogliamo vedere bene la  
+23:15
+parte non inizializzata, potremmo fare che,  prima di `memcpy`, usiamo `memset`. `memset`,  
+23:24
+come `memcpy`, prende un puntatore di  qualsiasi tipo, un valore di un byte (FF,  
+23:36
+quindi 255), e la dimensione, e riempie  tutta l'area di memoria di quel byte.  
+23:51
+Se io ora compilo il programma e lo eseguo,  guardate, vedete che ora sono tutti FF le  
+23:56
+cose che io non ho inizializzato. Quindi  ho inizializzato la lunghezza, non è FF,   gli ho messo 'sta stringa fino a qua col  null terminator, il resto è tutto FF.
+24:07
+Ripristiniamo un po' di cose, togliamo la  `memset` e usiamo con vantaggio il nostro  
+24:19
+operatore ternario. Mi sembra che la nostra  hexdump funzioni in maniera accettabile.  
+24:32
+Sapete forse come l'avremmo dovuta migliorare?  Teoricamente uno dovrebbe usare una define,  
+24:38
+`HEXDUMP_CHARS_PER_LINE`, e la  settiamo a 8, o magari a 16.  
+24:48
+E qui usiamo questa define. Vedete com'è stato  bello unificare questa logica? E anche usare  
+25:08
+una variabile d'appoggio che ci ricorda fino  a che punto noi avevamo stampato i caratteri.  
+25:13
+Perché ora, così facendo, io credo che il  nostro programma funzionerà senza problemi.   Guardate com'è bello questo. Sembra un po'  l'output canonico che abbiamo visto poco fa.
+28:36
+E invece no, cari ragazzi, mi sono accorto che  qui un bug ce l'abbiamo. Guardate: quando è  
+28:43
+esattamente multiplo del numero di caratteri,  vengono stampati un sacco di padding inutili.  
+28:51
+Questa cosa qui la possiamo sistemare in vari  modi, ma il modo più semplice è, credo, questo  
+28:57
+qui. Aggiungiamo un modulo all'operazione di  padding per farlo tornare a zero quando non serve.  
+29:04
+Se `len % HEXDUMP_CHARS_PER_LINE` valeva  0, poi qua io faccio `16 - 0` e sono 16.  
+29:22
+Ma con questa istruzione qui ci togliamo questo  pensiero. Potevo scriverlo tutto dentro una linea,  
+29:28
+ma sarebbe stato meno chiaro. A  questo punto, la nostra funzione  
+29:33
+dovrebbe funzionare bene in tutti i casi.  E credo che stavolta ci siamo davvero.
+29:58
+E niente raga, guardate qua. C'è la  lunghezza, torniamo a 8 caratteri per riga.  
+30:14
+C'è la lunghezza, che sono i nostri 8 byte, e poi  qua inizia l'array. E allora, lo vogliamo capire  
+30:20
+che cos'è il nostro `str`? Vi faccio vedere.  Io stampo qua con la printf l'indirizzo della  
+30:29
+struttura, l'indirizzo di memoria dove risiede,  e poi stampo `s.str`. Guardate: la struttura è a  
+30:51
+`...18` e in esadecimale, 8 byte dopo, c'è la mia  `str`. Quindi `str` non è altro che un simbolo. E  
+31:04
+quando io gli tolgo la dimensione (`char str[]`),  gli voglio dire al C: "Io non ho davvero un array,  
+31:11
+ma tu questo `str` me lo devi far puntare alla  fine della struttura". Così, se io iper-alloco  
+31:17
+la struttura, perché in realtà sarebbe  solo di 8 byte, ma io la alloco di 40 byte,  
+31:23
+c'ho 32 byte spendibili a cui il puntatore `str`  farà capo. Anche in questo caso `str` non è parte  
+31:30
+veramente della mia struttura, non è un campo che  io posso modificare, è un offset. Gli sto dicendo:  
+31:37
+"`str` è il mio offset alla fine della struttura  e lì posso scrivere quello che mi pare".
+31:46
+Va bene, mi sembra che questa cosa dovrebbe essere  chiara. Ma c'è di più, e queste sono cose che  
+31:52
+riguardano un po' il design, ma sono molto  importanti. Tanto per iniziare, vi faccio subito  
+31:57
+una confessione: io non la farei una libreria  di stringhe prefixed-length che ha il reference  
+32:05
+counting, perché secondo me il reference counting  appartiene logicamente a un ordine di idee più ad  
+32:16
+alto livello. Quindi, se io per esempio in Redis,  la mia libreria SDS, non ha il reference counting  
+32:26
+nell'header. C'ha la lunghezza, c'ha la grandezza  dell'allocazione. Questo sì che è utile, ma se ne  
+32:32
+parlerà in un'altra lezione. Forse c'ha dei flag,  ma non ho il reference counting. Se invece io vado  
+32:38
+a guardare nel mio `redisObject`, c'è il tipo, c'è  l'encoding e c'è il ref-count. Qui sì che c'è il  
+33:00
+ref-count, perché è l'oggetto ad alto livello. Poi  il mio puntatore può essere una stringa SDS o può  
+33:06
+essere una lista. Ci sono dei casi di programmi in  cui il reference counting nelle stringhe è utile,  
+33:13
+ma secondo me è molto strano che accada,  perché quasi sicuramente hai un tipo più  
+33:19
+ad alto livello che rappresenta diversi oggetti,  che fa da conchiglia e che ha queste funzioni.
+33:48
+Quindi questa è una. Secondo, qualcuno mi  diceva: "Ah, ma la lunghezza così ti permette  
+33:53
+di avere stringhe solo di 4 GB, tipo come i  file massimi della FAT32. Tutti i sistemi a  
+34:02
+32 bit finiscono per rompere le scatole".  Verissimo. Ma uno si deve chiedere: nella  
+34:08
+mia applicazione ho stringhe più grandi di così?  Altrimenti, voglio sprecare ogni volta 4 byte?  
+34:14
+Ci sono per queste cose compromessi e ci sono  anche mancanze di compromesso, avendo il massimo  
+34:22
+usando una programmazione più efficace. Infatti,  la SDS guardate cosa fa: ha diversi tipi di header  
+34:40
+in base a quanto è grande la stringa. Stringhe a  64 bit, stringhe a 32 bit, a 16, a 8, addirittura  
+34:48
+a 5 bit. Per le stringhe molto piccole, io non ho  tutto questo header, ma ho semplicemente un byte  
+34:53
+solo dove ci sono dei flag (3 bit di flag) e 5 bit  di lunghezza, e posso risolvere fino a stringhe  
+35:15
+lunghe 31 caratteri. Ho avuto solo un byte di  overhead. Ma noi dovevamo semplificare le cose.
+35:23
+Altra domanda che mi è arrivata: "Ma il ref-count  è di 32 bit? Che succede se va in overflow?". A  
+35:31
+parte il fatto che è molto strano che io abbia  una condizione in cui posso referenziare il mio  
+35:40
+oggetto più o meno 4 miliardi di volte, che è più  o meno impossibile, in realtà questa cosa si rende  
+35:49
+possibile in un caso specifico. A volte, io con  le stringhe faccio un trucco. Se, per esempio,  
+35:55
+c'ho delle stringhe che sono molto diffuse, che  ne so, "0", "1", "2", quelle che rappresentano   i numeri nel mio programma, io le internalizzo.  Cioè, quando mi arriva una chiamata `ps_create`  
+36:07
+e mi rendo conto che `init` in realtà è una  di queste stringhe che io ho internalizzato,  
+36:14
+una di queste stringhe che vengono usate molto  spesso, che faccio? Gli ritorno una stringa  
+36:20
+preallocata che avevo creato all'inizio del mio  programma e incremento solo il reference counting.  
+36:26
+In questo caso si fa così di solito: quando il  reference counting arriva al valore massimo,  
+36:31
+io poi metto dei check nel codice che fanno  sì che il ref-count, da quel momento in poi,  
+36:37
+né si incrementi né si decrementi. In pratica creo  un leak, ma un leak in quel caso non è un errore  
+36:45
+nel programma. Mi accontento di non liberare più  quella stringa. O addirittura, per le stringhe  
+36:51
+che io ho internalizzato e voglio che non vengano  mai toccate, il ref-count lo setto direttamente al  
+37:01
+valore più grande che può contenere un `uint32_t`  e metto dei check che direttamente quel ref-count  
+37:07
+magico non viene più toccato. Quindi, in realtà,  la stessa tecnica mi fa da salvaguardia in tutti   e due i casi. Voglio un oggetto statico pur nel  sistema del reference counting, o voglio che,  
+37:19
+quando il reference counting sarebbe andato  oltre il suo limite naturale, io non abbia  
+37:24
+più modo di tracciare veramente quante referenze  esistono. Di quell'oggetto diventa "sticky" e non  
+37:30
+si libera mai più, quindi non corro mai il rischio  di liberare l'oggetto e poi qualcuno vi accederà.  
+37:37
+D'altra parte, se sono arrivato col mio oggetto ad  avere 4 miliardi di referenze, è molto probabile  
+37:42
+che questo oggetto comunque non verrebbe  liberato mai fino alla fine del programma. Questa puntata mi sa che è andata un po' per le  lunghe, la interrompiamo e alla prossima. Ciao.
+
+Lesson 17 - My Notes
+hexdump.c:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+struct pls {
+    long len;
+    //char *str; - C here create a pointer with 8bytes
+    char str[]; /* now s.str is a string with a 8byte pointer attached and 
+                 * str simply points at the end of the struct as an offset 
+                 * so use it, *str for this use is a conceptual and functional error */
+};
+
+#define HEXDUMP_CHARS_PER_LINE 8
+void hexdump(void *p, size_t len) {
+    unsigned char *byte = p;
+    size_t po = 0;
+    for (size_t j = 0; j < len; j++) {
+        printf("%02X ", byte[j]);
+        if (((j+1) % HEXDUMP_CHARS_PER_LINE == 0) || (j == len-1)) {
+            if (j == len-1) {
+                int pad = HEXDUMP_CHARS_PER_LINE - (len % HEXDUMP_CHARS_PER_LINE);
+                pad %= HEXDUMP_CHARS_PER_LINE;
+                for(int i = 0; i < pad; i++) {
+                    printf("~~ ");
+                }
+            }
+
+            printf("\t");
+            for(size_t i = po; i < j; i++) {
+                int c = isprint(byte[i]) ? byte[i] : '.';
+                printf("%c", c);
+            }
+            printf("\n");
+            po = j+1;
+        }
+    }
+}
+
+int main(void) {
+    struct pls s;
+
+    s.len = 10;
+
+    memcpy(s.str, "1234567890", 11);
+    printf("%p\n", &s);
+    printf("%p\n", s.str);
+    hexdump(&s, sizeof(s));
+
+    return 0;
+}
+
+
+Lesson 18 - Link: https://www.youtube.com/watch?v=3w73xjUSUEU&list=PLrEMgOSrS_3cFJpM2gdw8EGFyRBZOyAKY&index=21
+
+Lesson 18 - Transcript:
+0:40
+Ciao amici, benvenuti nel corso di C. Nelle ultime  lezioni, noi siamo stati accompagnati da questo  
+0:47
+esempio qua, delle "prefixed length string". Oggi  lo salutiamo perché non ci serve più. È finito  
+0:53
+qui il lavoro che facciamo con questo esempio, ma  continuiamo a farci accompagnare dalle strutture.  
+0:59
+Le vedremo sia in un'ottica diversa oggi, ma le  useremo anche per spiegare dei concetti nuovi  
+1:05
+che non hanno a che fare con le strutture, ma  che ben si integrano alle strutture stesse.
+1:11
+Allora, tanto per iniziare, andiamo subito a  introdurre il concetto di typedef. typedef è una  
+1:18
+delle poche parole chiave del C che non abbiamo  visto. Includiamo stdio. Creiamo la nostra main.
+1:31
+Bene, noi sappiamo che il C ha dei tipi che  hanno dei nomi. int è il nome di un tipo,  
+1:36
+e io posso dichiarare una variabile a di tipo  intero, assegnarle 10 e con printf stampare la  
+1:44
+variabile a. Questo funziona perché il C sa cos'è  a e sa cos'è un intero, int. Io so cos'è un int,  
+1:52
+cosa mi posso aspettare in diverse piattaforme. E  poi qua, la printf, che è una funzione variadica,  
+1:59
+cioè che prende un numero variabile di argomenti  (noi ancora questa cosa del C non l'abbiamo  
+2:04
+studiata, ma ci arriveremo), sa che, siccome io ho  specificato %d, dovrà estrarre dagli argomenti che  
+2:11
+vengono alla destra un intero. Quindi i tipi  in C hanno un nome ben chiaro e ognuno ha un  
+2:20
+suo specifico nome. Quindi, io ora compilo  questo programma, lo eseguo e lui scrive 10.
+2:29
+Bene, ora facciamo un esempio. Io voglio  usare degli interi, però per descrivere  
+2:35
+uno specifico tipo di intero: i numeri di  errore del mio programma. Per dire, io ho  
+2:41
+delle funzioni che si chiamano tipo foo. Questa  funzione fa qualcosa e ritorna un errore. Non so,  
+2:51
+-20 significa un errore in particolare. Ma nella  mia API, nei miei prototipi di funzioni, quando io  
+2:59
+le dichiaro e così via, voglio che si capisca  che questo intero è in particolare riferito a  
+3:07
+un numero di errore. typedef in soccorso. In  questi casi, io posso scrivere typedef e poi  
+3:17
+qua faccio quello che sarebbe una definizione di  una variabile: int error_code. Quindi guardate,  
+3:30
+se io togliessi typedef, questa è la definizione  di una variabile che si chiama error_code ed è di  
+3:36
+tipo intero. Se metto a sinistra di quella che  sembra una normale definizione (nome di tipo,  
+3:41
+nome di variabile) typedef, allora questa si  trasforma in una definizione di un tipo. Cioè,  
+3:49
+io gli sto dicendo che error_code è un alias di  int, quindi ogni volta che io dovrei scrivere int,  
+3:57
+posso scrivere error_code ed è uguale. Io  qua posso scrivere error_code foo() che  
+4:03
+ritorna -20. Poi, anche qua scriverò  error_code. error_code a = foo(). Se  
+4:16
+compilo questo programma, continua  a funzionare esattamente come prima.
+4:22
+C'è chi usa le typedef, ma forse in questo  caso sarebbe più il caso di usare una enum,  
+4:29
+che ancora non abbiamo introdotto ma  che introdurremo. Io vi dico la verità,  
+4:35
+sono il tipo di programmatore che invece usa  int, i tipi espliciti; non prova a fare questo  
+4:43
+tipo di documentazione attraverso i tipi  nel caso di tipi semplici (non composti),  
+4:48
+cioè gli interi. Ma utilizzo, al contrario,  moltissimo le typedef con le strutture.
+4:55
+Per esempio, se io ho la mia frazione, che  sapete che avevamo fatto: typedef struct { int n;  
+5:08
+int d; } fract;, cioè il mio numeratore e il  mio denominatore. In questo caso specifico,  
+5:15
+siccome io ho scritto typedef struct,  attenzione: il nome della struttura andrebbe qui,  
+5:24
+ma io sto dichiarando la struttura senza darle un  nome. E perché è possibile questo? Normalmente,  
+5:30
+io posso dichiarare una variabile fract  che è una struttura di questo tipo senza  
+5:34
+dare un nome specifico a questa struttura.  Nel caso della typedef, in questo caso,  
+5:41
+io neanche chiamo la struttura in un modo, perché  mi serve solo per dichiarare il tipo. Quindi  
+5:48
+fract è di questo tipo qua. A questo punto, io  posso benissimo scrivere qui: fract f; f.n = 10;  
+6:02
+f.d = 20; printf("%d/%d", f.n, f.d);. Compiliamo  questo programma ed ecco qua, la mia frazione.
+6:20
+Ma guardate, e questo è molto interessante,  perché io altrimenti qua avrei dovuto scrivere  
+6:27
+struct fract, eccetera, eccetera. Quindi  è più comodo. Diventa questo, guardate,  
+6:35
+un tipo del C a tutti gli effetti, perché io  lo chiamo per nome ed è un tipo aggregato,  
+6:39
+quindi non è un tipo base come un  intero, ma ha un suo significato.  
+6:45
+Addirittura, io posso anche fare: typedef  fract *fractptr;. Quindi, in questo caso io,  
+7:04
+guardate, se non ci fosse la typedef, avrei  definito un puntatore al tipo fract. Ok,  
+7:10
+con la typedef invece, fractptr diventa un tipo a  sé, che è un puntatore agli oggetti di tipo fract,  
+7:21
+alle strutture di tipo fract. Quindi ora  posso dichiarare fractptr fp = &f;. Prendo  
+7:30
+il puntatore da f. Guardate, in questo fp non ho  scritto l'asterisco, sennò era un puntatore a un  
+7:35
+puntatore, perché già il tipo in sé, la typedef,  ha definito fractptr come un puntatore. Quindi già  
+7:44
+qua, in questo specificatore di tipo, c'è tutto  quello che a me serve. E guardate, se io compilo  
+7:50
+questo programma: my fraction is stored at %p,  fp. Qua è sbagliato, dovrebbe essere struct. L'ho  
+8:12
+modificato poco fa per errore. Esatto. Guardate,  funziona tutto e ho anche il mio puntatore.
+8:21
+Tutto ciò è molto interessante perché mi permette  di creare dei tipi opachi in una libreria,  
+8:28
+che io posso esporre al programmatore che usa  questa libreria in maniera molto, ma molto,  
+8:40
+chiara e separata dall'implementazione  che ho. E l'esempio più interessante di  
+8:47
+tutta questa roba qua è proprio  la libreria standard del C.
+8:51
+Allora, guardate, questo qui in realtà lo lascio  così com'è e questa qui la chiamo stdio1.c.  
+8:59
+Guardate la libreria per gestire l'input/output  del C, come si aprono i file, come si chiudono,  
+9:05
+e ora vedremo perché questo concetto della typedef  è centrale. Quindi includo stdio.h, a maggior  
+9:13
+ragione perché useremo non la solita printf,  ma le funzioni più avanzate. int main(void).
+9:21
+Bene, io voglio fare un programma che  apre questo stesso file: stdio1.c.  
+9:29
+Con questo file fa qualcosa. Si fa così. Devo  dichiarare, guardate, un puntatore fp a un file di  
+9:41
+tipo FILE. Cioè, questo FILE qui non è altro che  una struttura, è typedef-ata, o almeno potrebbe  
+9:47
+essere implementato in questo modo. In realtà  potrebbe essere una macro, possono fare cose  
+9:51
+strane sotto sotto, ma la cosa interessante è che,  di fatto, il modo più ovvio per implementarlo,  
+10:00
+e il modo in cui voi potete implementarlo,  è attraverso una typedef di una struttura.
+10:05
+Poi io chiamo la mia chiamata fopen, che  quello che fa, praticamente, è di allocare una  
+10:09
+struttura di tipo FILE e passarmi il puntatore  di questa struttura. Quindi io gli dico fopen,  
+10:16
+questo file, come si chiama? stdio1.c, con  "r". Guardate, fopen funziona così. In pratica,  
+10:24
+mi ritorna il riferimento a questo file,  che è una struttura in cui dentro ci sarà  
+10:28
+il file descriptor, dove siamo arrivati  nella lettura del file, in che modo questo  
+10:33
+file è aperto (se è in lettura, se anche in  scrittura), e così via. Varie informazioni.
+10:40
+Quindi poi io dovrò avere una chiamata fclose  corrispondente, altrimenti c'è un memory leak,  
+10:46
+perché qui ho allocato delle cose e mi sono  anche impegnato con il sistema operativo  
+10:51
+ad aprire questo file descriptor, e  non voglio che poi si perda e rimanga  
+10:56
+allocato. Quindi fclose si occuperà  sia di chiudere il file descriptor  
+11:01
+(che è quel numero che identifica il  file tra il mio processo e il kernel,  
+11:06
+perché io e il kernel ci mettiamo d'accordo, ma  ci arriveremo). Mi serve la mia chiamata fclose.
+11:12
+Se per caso il file non c'è, fopen mi ritorna  NULL. Quindi questo fp sarà il puntatore a zero,  
+11:22
+che è un puntatore speciale in C che  serve per dire "qua non c'è niente",  
+11:27
+non c'è nessun puntatore valido allocato.  Quindi io posso scrivere qui: if (fp == NULL),  
+11:37
+printf("Unable to open file"), e ritorno  con un codice di errore. Guardate,  
+11:48
+ora compiliamo questo programma qua, e  il programma funziona, cioè è riuscito  
+11:57
+ad aprire il file e chiuderlo. Ma se io qua  indicassi un file che non esiste, cioè stdio2.c,  
+12:04
+ricompilo il programma e lo eseguo, mi ritorna  questo errore: "Unable to open the file".
+12:11
+Dopo che io apro questo file, che  ci posso fare di interessante?  
+12:17
+Guardate, una chiamata abbastanza interessante  è la fread. fread: gli devo passare un puntatore  
+12:28
+che è il mio buffer (un puntatore di tipo  void, quindi posso passare qualsiasi cosa).  
+12:35
+Poi gli devo passare una dimensione... o  meglio, la fread è un po' più complicata:  
+12:42
+gli dico la dimensione dell'oggetto che voglio  leggere e quanti di questi oggetti voglio leggere.  
+12:49
+Se questo lo metto a 1, gli dico semplicemente il  numero di byte. Se voglio leggere, per esempio,  
+12:55
+dal disco cinque oggetti che sono di 20 byte  ciascuno, scrivo 5 e qua scrivo 20. Questa è  
+13:01
+una cattiva API. Bene, memorizziamo tutti questa  cosa come un antipattern. Hanno sbagliato qui,  
+13:12
+60 anni fa hanno sbagliato. Qua ci andava  solo size, number_of_bytes, whatever,  
+13:20
+quello che volete. E poi, se uno si deve fare  la moltiplicazione, saprà anche scrivere 5 * 20.
+13:27
+In realtà, una delle motivazioni per cui questa  API poteva avere in passato un senso era quando  
+13:36
+i numeri erano a 32 bit o a 16 bit: leggere,  per esempio, 2^16 oggetti di 30 byte ognuno,  
+13:47
+andavi in overflow e ti dovevi complicare la  vita. È possibile che questa roba qua nasca da  
+13:53
+questo problema. Quindi, probabilmente,  dovrei rimangiarmi quello che ho detto,  
+13:58
+ma alla luce della modernità e di  size_t a 64 bit nei moderni sistemi,  
+14:04
+questa cosa andrebbe probabilmente evitata.  Ecco, bisognerebbe indagare su qual è la  
+14:09
+storia di questa cosa qui di preciso. E poi  gli dico, alla fine, il puntatore al mio file,  
+14:14
+perché fread da dov'è che la deve leggere  'sta roba? E poi il ritorno è size_t:  
+14:20
+quanti byte sono stati letti, o meglio, quanti  oggetti. Vediamo cosa ritorna la funzione:  
+14:28
+"the number of objects". O se accade un errore  o se è raggiunta la fine del file, il valore di  
+14:43
+ritorno è zero o uno "short count", cioè ritorna  meno oggetti di quanti io ho chiesto di leggere.
+14:52
+Quindi io, praticamente, avrò, se non ci  sono errori, sempre un numero positivo.  
+14:57
+Fino a quando ci sono ancora il  numero di oggetti che io chiedo,  
+15:01
+avrò questo numero di oggetti. Quando ne  rimangono di meno, ne avrò di meno, e l'ultima  
+15:05
+chiamata sarà zero perché il file è terminato  e mi segnala la condizione di "end of file".
+15:14
+Allora, proviamo a usare questa fread.  Io qua creo un buffer di 32 byte.  
+15:24
+E poi faccio fread(buf, 1, sizeof(buf),  fp). Gli dico: leggimi oggetti di 1 byte,  
+15:39
+quanti ne entrano nel buffer. Altrimenti, se  restano meno di 32 byte, non me li legge. Vedete?  
+15:51
+È un'API prona agli errori, fragile. Non mi  piace. Qua: size_t nread;. Il numero che ne  
+16:01
+ha letti lo registriamo qua. Quindi ci facciamo  scrivere il nostro nread. Veramente sarebbe %zd,  
+16:17
+nread. Per il size_t, lo specificatore di tipo  dovrebbe essere %zd, se ricordo bene. Vediamo  
+16:23
+se è vero. Compiliamo. Esatto, abbiamo  letto effettivamente 32 byte dal file.
+16:33
+Facciamo una cosa: noi avevamo hexdump,  ci eravamo implementati 'sta roba qui,  
+16:41
+quindi ora io la vado a copiare. Questa funzione  qua l'andiamo a riportare qui. Così io qui chiamo,  
+16:55
+sul numero di byte che ho letto, hexdump. Quelli  erano gli argomenti: il puntatore buf e il numero  
+17:04
+di byte che io voglio stampare a schermo con  la nostra hexdump. Ve la ricordate? hexdump,  
+17:10
+quella che mi faceva il dump sia esadecimale che  leggibile di un buffer qualsiasi. Proviamoci. Qua  
+17:19
+c'è qualcosa che usavamo noi che io non ho  incluso. isprint... Ah, include .
+17:37
+Ecco, guardate qui il mio file... ma in realtà 8  per linea sono pochi. Vediamo 16 come diventa. Sì,  
+17:51
+così va bene. Ehm, beh, ma così io stampo  solo l'inizio del file. Facciamo una cosa,  
+18:02
+un ciclo. Per ora ci semplifichiamo il ciclo  per renderlo più facile a chi non è abituato  
+18:13
+a queste cose, e poi lo miglioriamo. Quindi  io dichiaro la mia variabile nread fuori.  
+18:22
+Qua faccio un while(1). nread = fread(...). if  (nread == 0) break;. Quindi interrompo il ciclo  
+18:31
+while se la lettura dal file mi ritorna zero.  Altrimenti continuo. Se non ho interrotto il  
+18:43
+ciclo, cioè significa che sono riuscito a leggere  qualche byte, chiamo di nuovo la mia hexdump.
+18:51
+Benissimo. Guardate, compiliamo questo  programma e mi fa l'hexdump di tutto il  
+18:59
+suo stesso sorgente. Si autoanalizza in qualche  modo. Vedete, non è tanto diverso da "hexdump  
+19:09
+-C stdio1.c", non credete? Beh, questo è  più figo, diciamoci la verità. Guardate,  
+19:20
+c'ha le lineette, però il nostro programma è  una merdina, piccolo piccolo. Quindi comunque  
+19:26
+fa una cosa utile. Questo forse è il  primo programma utile che scriviamo.
+19:33
+Poi vedete, uno, quando man mano nel C si va  implementando dei pezzi, se li porta appresso e se  
+19:39
+ne frega di andare a cercare la cosa che fa questa  cosa. Alla fine hai la tua libreria, che comunque  
+19:46
+molto spesso includerai così, in maniera brutale,  e crei software che non hanno dipendenze. Sono un  
+19:51
+solo file, li compili, eppure sono in grado  di fare delle cose che hanno un certo valore.
+19:58
+Ma noi ci potremmo chiedere: saremmo in grado  di implementare noi stessi qualcosa di simile  
+20:06
+a questo, cioè fopen? Se io faccio man fopen,  questa è una chiamata di libreria. Guardate qua,  
+20:14
+c'è il 3, non il 2, quindi non è una  chiamata di sistema. Questa fa parte  
+20:19
+della lib del linguaggio C, dello standard. Beh,  in alcuni sistemi embedded magari STDIO non c'è,  
+20:31
+però in qualsiasi compilatore di un computer  vero c'è STDIO. E quindi, evidentemente,  
+20:38
+questo STDIO (quindi fopen, fread, fclose),  in realtà sotto sotto chiama le system call,  
+20:48
+le chiamate di sistema a basso livello del mio  sistema operativo. E il mio sistema operativo,  
+20:55
+visto che questo è un macOS, tra l'altro  certificato Unix (quindi è uno Unix a tutti gli  
+21:00
+effetti), deve seguire lo standard POSIX. E quindi  io, seguendo praticamente lo standard POSIX,  
+21:08
+posso andare a interrogare il sistema operativo e  saltare completamente la libreria standard del C.
+21:14
+Nella prossima lezione noi faremo proprio questo,  e dopo utilizzeremo typedef e strutture per vedere  
+21:21
+come possiamo implementare una piccola libreria  di input/output, diciamo, alternativa a quella  
+21:28
+della libreria standard del C, perché questa  è una cosa molto istruttiva che ci insegnerà  
+21:34
+qualcosa in più del C. Usciamo, diciamo, dal  gioco che c'è stato fino a questo momento e  
+21:42
+scriviamo una libreria vera, che non servirà  assolutamente a niente perché abbiamo la libc,  
+21:50
+bene, ma che servirà a noi per istruirci, per  farci fare un'esperienza di programmazione vera.
+21:57
+Dunque, alla prossima.
+
+Lesson 18 - My Notes
+sdfad.c:
