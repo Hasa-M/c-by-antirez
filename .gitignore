@@ -27,3 +27,6 @@ a.out
 # Core dumps
 core
 core.*
+
+# AI Agents
+.claude
