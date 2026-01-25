@@ -24,6 +24,8 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 - Lessons 06-07 - Control Flow: Conditionals, Loops, and Recursion
 - Lesson 08 - Conway's Game of Life
 - Lessons 09-10-11 - Pointers
+- Lessons 12-13 Dynamic Memory Allocation
+- Lessons 14-15-16-17 Structs and Data Structures
 
 ## Setup Instructions
 
