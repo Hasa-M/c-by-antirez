@@ -427,3 +427,5 @@ int main(void)
 
     return 0;
 }
+
+Extra: bst-free-visual.html is an interactive fe page that explains how the memory is freed recurvively.
