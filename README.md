@@ -27,11 +27,11 @@ This repo is structured to follow the course lesson by lesson. Each lesson folde
 - Lessons 12-13 Dynamic Memory Allocation
 - Lessons 14-15-16-17 Structs and Data Structures
 - Lesson 18 typedef and File I/O
-- Lessons 19-20 System Calls and Memory Mapping
+- Lessons 19-20 - System Calls and Memory Mapping
 - Lessons 21-22 - Unions, Bitfields and Function Pointers
-- Lessons 23-24-25-26-27-29 Toy Forth Interpreter
-- Lesson 28
-- Lesson 30
+- Lessons 23-24-25-26-27-29 - Toy Forth Interpreter
+- Lesson 28 - 
+- Lesson 30-31 - 
 
 ## Setup Instructions
 
